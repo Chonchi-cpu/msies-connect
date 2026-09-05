@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Staff login - MSIES Connect</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="navbar-placeholder"></div>
+
+<main class="container">
+  <a href="login-choice.html" class="back-link">&larr; Back</a>
+  <div class="auth-box">
+    <h2>Staff login</h2>
+    <p class="muted">For administrators and teachers</p>
+
+    <form id="staff-login-form">
+      <p>
+        School email:<br>
+        <input type="email" id="email" placeholder="j.torres@msies.edu.ph" required>
+      </p>
+      <p>
+        Password:<br>
+        <input type="password" id="password" placeholder="Enter your password" required>
+      </p>
+      <button type="submit" class="btn">Log in</button>
+    </form>
+
+    <p><a href="#" id="forgot-link">Forgot password?</a></p>
+    <p><small>Try: admin1@email.com / admin123 (Admin) or j.torres@msies.edu.ph / teacher123 (Teacher)</small></p>
+  </div>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/components/navbar.js"></script>
+<script>
+  renderNavbar('home');
+
+  document.getElementById('forgot-link').addEventListener('click', (e) => {
+    e.preventDefault();
+    alert('A reset link would be emailed in the full version.');
+  });
+
+  document.getElementById('staff-login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const password = document.getElementById('password').value;
+    const found = getUsers().find(u => u.email.toLowerCase() === email && u.password === password);
+    if (!found) {
+      alert('Invalid email or password. (See the demo accounts below the form.)');
+      return;
+    }
+    setCurrentUser(found);
+    window.location.href = 'feed.html';
+  });
+</script>
+
+</body>
+</html>

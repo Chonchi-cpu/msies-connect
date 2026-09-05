@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MSIES Connect</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="navbar-placeholder"></div>
+
+<main class="container">
+  <section class="hero">
+    <h1>MALIPAMPANG SAN ILDEFONSO ELEMENTARY SCHOOL</h1>
+    <p>One place for every school announcement and event.</p>
+    <p>No more missed notices on the bulletin board. Parents, teachers, and students see updates the moment they're posted.</p>
+    <div class="actions">
+      <a href="login-choice.html" class="btn">Log in</a>
+      <a href="register.html" class="btn btn-outline">Register</a>
+    </div>
+  </section>
+
+  <hr>
+
+  <h2>Recent posts</h2>
+  <div id="recent-posts"></div>
+
+  <hr>
+
+  <h2>Upcoming events</h2>
+  <ul class="upcoming-list" id="upcoming-events"></ul>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/components/navbar.js"></script>
+<script>
+  renderNavbar('home');
+
+  const announcements = getAnnouncements();
+
+  document.getElementById('recent-posts').innerHTML = announcements
+    .map(a => `<p><span class="badge badge-${a.category.toLowerCase()}">${a.category}</span> <strong>${a.title}</strong>${a.date ? ' — ' + fmtDate(a.date) : ''}</p>`)
+    .join('');
+
+  const upcoming = announcements.filter(a => a.date).sort((a, b) => a.date.localeCompare(b.date));
+  document.getElementById('upcoming-events').innerHTML = upcoming
+    .map(a => `<li>${fmtDate(a.date)} — ${a.title}${a.time ? ' (' + a.time + ')' : ''}</li>`)
+    .join('');
+</script>
+
+</body>
+</html>
