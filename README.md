@@ -4,7 +4,11 @@ A frontend prototype for a school announcements, events, and chat platform —
 built with plain HTML, CSS, and JavaScript only (no frameworks, no build step).
 
 ## Group members
-- (Add your group members here)
+MINOY, JERWIN DE GUIA
+OLIVER, EVAN CALALO
+PALADIN, JOHN CHRISTIAN
+PASCUAL, JHEREMY DAVID
+PERALTA, DAVE NORIEL
 
 ## Project description
 MSIES Connect gives parents, teachers, students, and school admins one place to see
@@ -25,6 +29,8 @@ msies-connect/
 ├── index.html            # Homepage
 ├── login-choice.html     # Login role picker + quick demo login (see below)
 ├── feed.html             # Announcements feed (read-only this week)
+├──login-staff.html       # Admin Login
+├──login-parent.html      # User Login
 ├── css/
 │   └── style.css          # Shared stylesheet
 └── js/
