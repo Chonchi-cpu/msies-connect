@@ -29,7 +29,7 @@
     </form>
 
     <p>
-      <a href="#" id="forgot-link">Forgot password?</a>
+      <a href="reset-password.html">Forgot password?</a>
       &middot; <a href="register.html">Create an account</a>
     </p>
     <p><small>Try: maria.reyes@email.com / parent123 (Parent)</small></p>
@@ -40,11 +40,6 @@
 <script src="js/components/navbar.js"></script>
 <script>
   renderNavbar('home');
-
-  document.getElementById('forgot-link').addEventListener('click', (e) => {
-    e.preventDefault();
-    alert('A reset link would be emailed in the full version.');
-  });
 
   document.getElementById('parent-login-form').addEventListener('submit', (e) => {
     e.preventDefault();
