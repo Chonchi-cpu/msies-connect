@@ -49,9 +49,10 @@
     const role = document.querySelector('input[name="role"]:checked').value;
     const name = document.getElementById('name').value;
     const email = document.getElementById('email').value;
+    const section = document.getElementById('section').value.trim();
 
     const users = getUsers();
-    users.push({ name, email, password, role });
+    users.push({ name, email, password, role, section: section || undefined });
     saveUsers(users);
 
     alert(`Welcome to MSIES Connect, ${name}. You can now log in.`);
