@@ -20,34 +20,44 @@ parents and students can view them, comment, and chat.
 - HTML5 (multi-page site, one .html file per screen)
 - CSS3 (single shared stylesheet, `css/style.css`)
 - Vanilla JavaScript (ES6+), no frameworks or libraries
-- `localStorage` used as the data layer so state (login session, posts, chat
-  messages) persists across page loads/navigation, since there is no backend
+- `localStorage` used as the data layer so state (login session, posts, calendar
+  events, chat messages, profile edits) persists across page loads/navigation,
+  since there is no backend
 
-## Folder structure (this week's progress)
+## Folder structure
 ```
 msies-connect/
-├── index.html            # Homepage
-├── login-choice.html     # Login role picker + quick demo login (see below)
-├── feed.html             # Announcements feed (read-only this week)
-├──login-staff.html       # Admin Login
-├──login-parent.html      # User Login
+├── index.html              # Homepage (recent posts + upcoming events)
+├── login-choice.html       # Login role picker
+├── login-staff.html        # Staff (admin/teacher) login
+├── login-parent.html       # Parent & student login
+├── register.html           # Account creation
+├── reset-password.html     # Forgot-password request + confirmation
+├── feed.html                # Announcements feed
+├── calendar.html            # Events calendar
+├── chat.html                 # Group chat rooms
+├── profile.html               # Account settings
 ├── css/
-│   └── style.css          # Shared stylesheet
+│   └── style.css            # Shared stylesheet
 └── js/
-    ├── data.js             # Seed data + localStorage helpers (shared "backend")
-    ├── components/         # Reusable UI components (plain JS, return/inject HTML)
-    │   ├── navbar.js         # Top navigation bar
-    │   └── announcementCard.js # Reusable announcement/post card
+    ├── data.js               # Seed data + localStorage helpers (shared "backend")
+    ├── components/           # Reusable UI components (plain JS, return/inject HTML)
+    │   ├── navbar.js           # Top navigation bar
+    │   ├── modal.js            # Generic modal overlay (open/close)
+    │   ├── postForm.js         # Shared announcement/event form fields
+    │   └── announcementCard.js # Announcement card: badge, meta, comments, staff controls
     └── pages/
-        └── feed.js           # Feed page logic
+        ├── feed.js             # Feed page logic
+        ├── calendar.js         # Calendar page logic
+        ├── chat.js             # Chat page logic
+        └── profile.js          # Profile page logic
 ```
 
 ## Setup instructions
 No build tools or installation needed.
 1. Download/clone the project folder.
-2. Open `index.html` directly in a browser, **or** serve the folder with any
-   static server for best results (recommended, since some browsers restrict
-   `localStorage`/module loading on the `file://` protocol):
+2. Serve the folder with any static server (recommended, since some browsers
+   restrict `localStorage` on the `file://` protocol):
    ```
    npx serve .
    ```
@@ -57,23 +67,44 @@ No build tools or installation needed.
    ```
    Then visit `http://localhost:8000`.
 
-## Known limitations this week
-- `feed.html` requires a logged-in user (`requireAuth()` in `js/data.js`). The
-  full staff/parent login forms aren't part of this week's upload yet, so
-  `login-choice.html` includes a temporary "Quick demo login" button that logs
-  in as the seeded parent account and redirects to the feed, so the navigation
-  flow can still be demoed end-to-end. This will be replaced by the real login
-  forms next week.
-- The feed is **read-only** this week: it shows seeded announcements with
-  category filtering (All/Events/Holidays/Reminders) and an upcoming events
-  list. Creating, editing, and deleting posts, plus the comment thread, are
-  planned for a later milestone.
+## Demo accounts
+| Role    | Email                       | Password    |
+|---------|------------------------------|-------------|
+| Admin   | admin1@email.com            | admin123    |
+| Teacher | j.torres@msies.edu.ph       | teacher123  |
+| Parent  | maria.reyes@email.com       | parent123   |
 
-## Completed for this milestone (Week 5)
-- Initialized frontend project (plain HTML/CSS/JS)
-- Organized folder/file structure (css/, js/components/, js/pages/)
-- Working homepage based on the approved Figma design (`index.html`)
-- Navigation bar component (`navbar.js`) shown on every page
-- Reusable UI components: `navbar.js`, `announcementCard.js`
-- Feed page displaying seeded announcements with working category filters
-  and an upcoming events list (read-only)
+New accounts created via `register.html` (student or parent) are saved to
+`localStorage` and can log in through the parent & student login form.
+
+## What's implemented this milestone
+- Auth: staff login, parent/student login, registration, forgot-password
+  request flow (client-side only — no real email is sent), and session
+  persistence via `localStorage`.
+- Feed: category filters (All/Events/Holidays/Reminders), an upcoming
+  events sidebar, and:
+  - Staff-only New post, **Edit and Delete (with confirmation)
+    for announcements, via modal forms.
+  - Comments: anyone logged in can read and add comments on a post.
+- Calendar: month grid with prev/next navigation and a badge per dated
+  announcement, color-coded by category. Clicking a day shows that day's
+  events; staff can add, edit, or delete events from the same modal, reusing
+  the same form as the feed's post modal so the two stay in sync (an event
+  saved from either page shows up on both).
+- Chat: multiple rooms seeded with sample threads (grade-level rooms,
+  a PTA officers room, and an admin-only broadcast room). Sending is
+  disabled for non-staff in the admin broadcast room; all other rooms are
+  open to everyone.
+- Profile: account settings form (name, email, phone, password) for
+  every role, plus a notification-preference field for parents, and a
+  working log-out button.
+
+## Known limitations / next steps
+- There's no real backend or email service — password reset, chat, and all
+  data changes are simulated with `localStorage` and reset if it's cleared.
+- No per-child roster is enforced: any parent can currently comment on or
+  view any announcement rather than only their child's grade/section.
+- No image upload for announcements (the Figma design includes an optional
+  photo field) — text-only posts for now.
+- No real-time updates between browser tabs/users; chat and feed changes
+  only appear after the acting user's own next render.
