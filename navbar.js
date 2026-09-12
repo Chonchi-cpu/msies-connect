@@ -1,9 +1,3 @@
-/* ============================================================
-   navbar.js - reusable top navigation bar component.
-   Injected into #navbar-placeholder on every page.
-   Usage: renderNavbar('feed' | 'calendar' | 'chat' | 'profile' | 'home')
-   ============================================================ */
-
 function renderNavbar(active) {
   const placeholder = document.getElementById('navbar-placeholder');
   if (!placeholder) return;
