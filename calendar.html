@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendar - MSIES Connect</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="navbar-placeholder"></div>
+<div id="modal-root"></div>
+
+<main class="container">
+  <h2>Manage events calendar</h2>
+
+  <div class="calendar-header">
+    <button type="button" class="btn btn-outline btn-small" onclick="prevMonth()">&larr;</button>
+    <strong id="cal-title"></strong>
+    <button type="button" class="btn btn-outline btn-small" onclick="nextMonth()">&rarr;</button>
+    <span id="add-event-wrap"></span>
+  </div>
+
+  <p class="muted">Click any day to add or edit an event for that date.</p>
+
+  <table class="calendar" id="calendar-table"></table>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/components/navbar.js"></script>
+<script src="js/components/modal.js"></script>
+<script src="js/components/postForm.js"></script>
+<script src="js/pages/calendar.js"></script>
+
+</body>
+</html>
