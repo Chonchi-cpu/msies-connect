@@ -28,7 +28,7 @@
       <button type="submit" class="btn">Log in</button>
     </form>
 
-    <p><a href="#" id="forgot-link">Forgot password?</a></p>
+    <p><a href="reset-password.html">Forgot password?</a></p>
     <p><small>Try: admin1@email.com / admin123 (Admin) or j.torres@msies.edu.ph / teacher123 (Teacher)</small></p>
   </div>
 </main>
@@ -37,11 +37,6 @@
 <script src="js/components/navbar.js"></script>
 <script>
   renderNavbar('home');
-
-  document.getElementById('forgot-link').addEventListener('click', (e) => {
-    e.preventDefault();
-    alert('A reset link would be emailed in the full version.');
-  });
 
   document.getElementById('staff-login-form').addEventListener('submit', (e) => {
     e.preventDefault();
