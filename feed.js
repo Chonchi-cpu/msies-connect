@@ -1,10 +1,3 @@
-/* ============================================================
-   feed.js - page logic for feed.html
-   Read-only this week: category filtering + post display +
-   upcoming events. Posting, editing, deleting, and commenting
-   will be added in a later milestone.
-   ============================================================ */
-
 requireAuth();
 renderNavbar('feed');
 
@@ -21,6 +14,13 @@ function setFilter(f) {
   currentFilter = f;
   renderFilters();
   renderPosts();
+}
+
+function renderNewPostButton() {
+  const wrap = document.getElementById('new-post-wrap');
+  wrap.innerHTML = isStaff()
+    ? '<button type="button" class="btn" onclick="openNewAnnouncement()">+ New post</button>'
+    : '';
 }
 
 function renderPosts() {
@@ -40,8 +40,98 @@ function renderUpcoming() {
 
 function renderAll() {
   renderFilters();
+  renderNewPostButton();
   renderPosts();
   renderUpcoming();
+}
+
+/* ---- New / edit post modal ---- */
+
+function openNewAnnouncement() {
+  openModal(`
+    <div class="modal-header">
+      <h2>New announcement</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <p class="muted">Post something for parents, teachers, and students to see.</p>
+    <form id="post-form" onsubmit="return submitNewAnnouncement(event)">
+      ${postFormFields()}
+      <p style="text-align:right">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn">Publish</button>
+      </p>
+    </form>
+  `);
+}
+
+function submitNewAnnouncement(e) {
+  e.preventDefault();
+  addAnnouncement(readPostForm());
+  closeModal();
+  renderAll();
+  return false;
+}
+
+function openEditAnnouncement(id) {
+  const a = getAnnouncements().find((x) => x.id === id);
+  if (!a) return;
+  openModal(`
+    <div class="modal-header">
+      <h2>Edit announcement</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <p class="muted">Update the details below, then save your changes.</p>
+    <form id="post-form" onsubmit="return submitEditAnnouncement(event, ${id})">
+      ${postFormFields(a)}
+      <p style="text-align:right">
+        <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+        <button type="submit" class="btn">Save changes</button>
+      </p>
+    </form>
+  `);
+}
+
+function submitEditAnnouncement(e, id) {
+  e.preventDefault();
+  updateAnnouncement(id, readPostForm());
+  closeModal();
+  renderAll();
+  return false;
+}
+
+function confirmDeleteAnnouncement(id) {
+  const a = getAnnouncements().find((x) => x.id === id);
+  if (!a) return;
+  openModal(`
+    <div class="modal-header">
+      <h2>Delete this announcement?</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="icon-circle danger">&#9888;</div>
+    <p style="text-align:center">This post will be removed from the feed and calendar. This can't be undone.</p>
+    <p style="text-align:right">
+      <button type="button" class="btn btn-outline" onclick="closeModal()">Cancel</button>
+      <button type="button" class="btn btn-danger" onclick="doDeleteAnnouncement(${id})">Delete</button>
+    </p>
+  `);
+}
+
+function doDeleteAnnouncement(id) {
+  deleteAnnouncement(id);
+  closeModal();
+  renderAll();
+}
+
+/* ---- Comments ---- */
+
+function submitComment(e, id) {
+  e.preventDefault();
+  const input = e.target.querySelector('input');
+  const text = input.value.trim();
+  if (!text) return false;
+  addComment(id, text);
+  renderPosts();
+  return false;
 }
 
 renderAll();
