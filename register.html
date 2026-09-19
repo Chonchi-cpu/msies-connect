@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Create account - MSIES Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -11,9 +14,10 @@
 <div id="navbar-placeholder"></div>
 
 <main class="container">
-  <div class="auth-box">
-    <h2>Create your account</h2>
-    <p class="muted">Join MSIES Connect to stay updated</p>
+  <div class="auth-box" id="register-box">
+    <div class="auth-icon-wrap"><span class="logo-badge lg">M</span></div>
+    <h2 style="text-align:center">Create your account</h2>
+    <p class="muted" style="text-align:center">Join MSIES Connect to stay updated</p>
 
     <form id="register-form">
       <p>
@@ -55,8 +59,12 @@
     users.push({ name, email, password, role, section: section || undefined });
     saveUsers(users);
 
-    alert(`Welcome to MSIES Connect, ${name}. You can now log in.`);
-    window.location.href = 'login-choice.html';
+    document.getElementById('register-box').innerHTML = `
+      <div class="icon-circle success">&#10003;</div>
+      <h2 style="text-align:center">Account created!</h2>
+      <p class="muted" style="text-align:center">Welcome to MSIES Connect, ${name}. You can now log in to see announcements, events, and messages from the school.</p>
+      <p style="text-align:center"><a href="login-choice.html" class="btn">Go to log in</a></p>
+    `;
   });
 </script>
 
