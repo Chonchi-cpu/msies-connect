@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Feed - MSIES Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -12,16 +15,22 @@
 <div id="modal-root"></div>
 
 <main class="container">
-  <h2>Feed</h2>
+  <div class="page-header-row">
+    <h2>Feed</h2>
+    <div id="new-post-wrap"></div>
+  </div>
 
   <div class="filters" id="filters"></div>
-  <div id="new-post-wrap"></div>
 
-  <div id="posts"></div>
-
-  <hr>
-  <h3>Upcoming events</h3>
-  <ul class="upcoming-list" id="upcoming-events"></ul>
+  <div class="feed-layout">
+    <div class="feed-main">
+      <div id="posts"></div>
+    </div>
+    <aside class="feed-sidebar">
+      <h3 style="margin-top:0;">Upcoming events</h3>
+      <ul class="upcoming-list" id="upcoming-events"></ul>
+    </aside>
+  </div>
 </main>
 
 <script src="js/data.js"></script>
