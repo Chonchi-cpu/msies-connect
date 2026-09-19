@@ -1,10 +1,3 @@
-/* ============================================================
-   calendar.js - page logic for calendar.html
-   Renders a month grid with a badge per dated announcement.
-   Staff can add/edit/delete events by clicking a day; everyone
-   else gets a read-only view of that day's events.
-   ============================================================ */
-
 requireAuth();
 renderNavbar('calendar');
 
@@ -44,6 +37,7 @@ function renderCalendar() {
   const firstDay = new Date(viewYear, viewMonth, 1).getDay(); // 0=Sun
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const announcements = getAnnouncements().filter((a) => a.date);
+  const todayIso = isoFor(today.getFullYear(), today.getMonth(), today.getDate());
 
   let html = '<tr>' + ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d) => `<th>${d}</th>`).join('') + '</tr>';
 
@@ -59,7 +53,8 @@ function renderCalendar() {
         const badges = dayEvents
           .map((a) => `<div class="day-event badge-${a.category.toLowerCase()}">${a.title}</div>`)
           .join('');
-        html += `<td class="clickable" onclick="openDayModal('${iso}')">
+        const todayClass = iso === todayIso ? ' is-today' : '';
+        html += `<td class="clickable${todayClass}" onclick="openDayModal('${iso}')">
           <div class="day-num">${day}</div>
           ${badges}
         </td>`;
@@ -113,6 +108,7 @@ function openDayModal(iso) {
         </div>
         <h3>${a.title}</h3>
         <p class="muted">${[a.time, a.location].filter(Boolean).join(' · ')}</p>
+        ${a.photo ? `<img class="post-photo" src="${a.photo}" alt="${a.title}">` : ''}
         <p>${a.details || ''}</p>
       </div>
     `)
@@ -166,6 +162,23 @@ function submitEditEvent(e, id) {
 }
 
 function deleteEvent(id) {
+  const a = getAnnouncements().find((x) => x.id === id);
+  if (!a) return;
+  openModal(`
+    <div class="modal-header">
+      <h2>Delete this event?</h2>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+    </div>
+    <div class="icon-circle danger">&#9888;</div>
+    <p style="text-align:center">"${a.title}" will be removed from the calendar and feed. This can't be undone.</p>
+    <p style="text-align:right">
+      <button type="button" class="btn btn-outline" onclick="openDayModal('${a.date}')">Cancel</button>
+      <button type="button" class="btn btn-danger" onclick="doDeleteEvent(${id})">Delete</button>
+    </p>
+  `);
+}
+
+function doDeleteEvent(id) {
   deleteAnnouncement(id);
   closeModal();
   renderCalendar();
