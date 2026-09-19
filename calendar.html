@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Calendar - MSIES Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -15,15 +18,25 @@
   <h2>Manage events calendar</h2>
 
   <div class="calendar-header">
-    <button type="button" class="btn btn-outline btn-small" onclick="prevMonth()">&larr;</button>
-    <strong id="cal-title"></strong>
-    <button type="button" class="btn btn-outline btn-small" onclick="nextMonth()">&rarr;</button>
+    <div class="calendar-title-group">
+      <button type="button" class="calendar-nav-btn" onclick="prevMonth()" aria-label="Previous month">&larr;</button>
+      <strong id="cal-title"></strong>
+      <button type="button" class="calendar-nav-btn" onclick="nextMonth()" aria-label="Next month">&rarr;</button>
+    </div>
     <span id="add-event-wrap"></span>
+  </div>
+
+  <div class="calendar-legend">
+    <span class="legend-item"><span class="legend-dot dot-events"></span>Events</span>
+    <span class="legend-item"><span class="legend-dot dot-holidays"></span>Holidays</span>
+    <span class="legend-item"><span class="legend-dot dot-reminders"></span>Reminders</span>
   </div>
 
   <p class="muted">Click any day to add or edit an event for that date.</p>
 
-  <table class="calendar" id="calendar-table"></table>
+  <div class="calendar-scroll">
+    <table class="calendar" id="calendar-table"></table>
+  </div>
 </main>
 
 <script src="js/data.js"></script>
