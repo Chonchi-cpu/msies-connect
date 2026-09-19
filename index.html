@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MSIES Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -12,8 +15,8 @@
 
 <main class="container">
   <section class="hero">
-    <h1>MALIPAMPANG SAN ILDEFONSO ELEMENTARY SCHOOL</h1>
-    <p>One place for every school announcement and event.</p>
+    <p class="hero-eyebrow">Malipampang San Ildefonso Elementary School</p>
+    <h1>One place for every school announcement and event.</h1>
     <p>No more missed notices on the bulletin board. Parents, teachers, and students see updates the moment they're posted.</p>
     <div class="actions">
       <a href="login-choice.html" class="btn">Log in</a>
@@ -21,15 +24,13 @@
     </div>
   </section>
 
-  <hr>
+  <h2 style="margin-top:40px;">Recent posts</h2>
+  <div id="recent-posts" class="recent-posts-grid"></div>
 
-  <h2>Recent posts</h2>
-  <div id="recent-posts"></div>
-
-  <hr>
-
-  <h2>Upcoming events</h2>
-  <ul class="upcoming-list" id="upcoming-events"></ul>
+  <h2 style="margin-top:36px;">Upcoming events</h2>
+  <div class="card">
+    <ul class="upcoming-list" id="upcoming-events"></ul>
+  </div>
 </main>
 
 <script src="js/data.js"></script>
@@ -40,13 +41,19 @@
   const announcements = getAnnouncements();
 
   document.getElementById('recent-posts').innerHTML = announcements
-    .map(a => `<p><span class="badge badge-${a.category.toLowerCase()}">${a.category}</span> <strong>${a.title}</strong>${a.date ? ' — ' + fmtDate(a.date) : ''}</p>`)
+    .map(a => `
+      <div class="card">
+        <span class="badge badge-${a.category.toLowerCase()}">${a.category}</span>
+        <h3>${a.title}</h3>
+        <p class="muted">${a.date ? fmtDate(a.date) : ''}${a.time ? ' · ' + a.time : ''}${a.location ? ' · ' + a.location : ''}</p>
+      </div>
+    `)
     .join('');
 
   const upcoming = announcements.filter(a => a.date).sort((a, b) => a.date.localeCompare(b.date));
-  document.getElementById('upcoming-events').innerHTML = upcoming
-    .map(a => `<li>${fmtDate(a.date)} — ${a.title}${a.time ? ' (' + a.time + ')' : ''}</li>`)
-    .join('');
+  document.getElementById('upcoming-events').innerHTML = upcoming.length
+    ? upcoming.map(a => `<li>${fmtDate(a.date)} — ${a.title}${a.time ? ' (' + a.time + ')' : ''}</li>`).join('')
+    : '<li class="muted" style="list-style:none; margin-left:-18px;">No upcoming events.</li>';
 </script>
 
 </body>
