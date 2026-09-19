@@ -16,7 +16,7 @@ function renderNavbar(active) {
   placeholder.innerHTML = `
     <header class="topbar">
       <div class="container topbar-inner">
-        <a href="${user ? 'feed.html' : 'index.html'}" class="brand">MSIES Connect</a>
+        <a href="${user ? 'feed.html' : 'index.html'}" class="brand"><span class="logo-badge">M</span>MSIES Connect</a>
         <nav class="navlinks">${links}</nav>
       </div>
     </header>
