@@ -1,10 +1,3 @@
-/* ============================================================
-   modal.js - reusable modal overlay component.
-   Injects HTML into #modal-root. Call openModal(html) to show,
-   closeModal() to hide. Clicking the overlay background or
-   pressing Escape also closes the modal.
-   ============================================================ */
-
 function openModal(innerHtml) {
   const root = document.getElementById('modal-root');
   if (!root) return;
