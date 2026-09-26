@@ -1,5 +1,4 @@
 
-
 requireAuth();
 renderNavbar('calendar');
 
@@ -187,3 +186,6 @@ function doDeleteEvent(id) {
 }
 
 renderCalendar();
+
+
+onDataChange(STORAGE_KEYS.announcements, renderCalendar);
