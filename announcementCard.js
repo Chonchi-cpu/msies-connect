@@ -19,7 +19,7 @@ function renderAnnouncementCard(a) {
       (c) => `
         <div class="comment-item">
           <span class="avatar">${initialsFor(c.author)}</span>
-          <div class="comment-bubble"><strong>${c.author}</strong><span>${c.text}</span></div>
+          <div class="comment-bubble"><strong>${personNameHtml(c.author)}</strong><span>${c.text}</span></div>
         </div>
       `
     )
