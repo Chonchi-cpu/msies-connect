@@ -1,3 +1,5 @@
+
+
 requireAuth();
 renderNavbar('calendar');
 
@@ -51,7 +53,7 @@ function renderCalendar() {
         const iso = isoFor(viewYear, viewMonth, day);
         const dayEvents = announcements.filter((a) => a.date === iso);
         const badges = dayEvents
-          .map((a) => `<div class="day-event badge-${a.category.toLowerCase()}">${a.title}</div>`)
+          .map((a) => `<div class="day-event badge-${a.category.toLowerCase()}">${a.photo ? '📷 ' : ''}${a.title}</div>`)
           .join('');
         const todayClass = iso === todayIso ? ' is-today' : '';
         html += `<td class="clickable${todayClass}" onclick="openDayModal('${iso}')">
