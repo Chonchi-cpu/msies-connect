@@ -148,6 +148,18 @@ function getUserByEmail(email) {
   if (!email) return null;
   return getUsers().find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
 }
+/* Best-effort name -> user lookup. Chat messages and comments only
+   ever stored the display name someone typed/was seeded with, never
+   an email, so this is how the profile-modal name links (see
+   components/profileModal.js) find the matching account. Returns
+   null on no exact match (e.g. seed placeholders like "Me" or
+   "School Admin", or a name with an added suffix) so callers can
+   fall back to plain, non-clickable text instead of guessing. */
+function getUserByName(name) {
+  if (!name) return null;
+  const clean = name.trim().toLowerCase();
+  return getUsers().find((u) => u.name.trim().toLowerCase() === clean) || null;
+}
 /* Directory search used by the navbar search bar. Excludes the
    current user (you already have your own Profile page) and caps
    results so the dropdown stays short. */
@@ -210,7 +222,11 @@ function sendChatMessage(roomId, text) {
   saveChatRooms(rooms);
 }
 
-/* ---- Direct messages ----*/
+/* ---- Direct (1:1) messages ----
+   Stored separately from chat rooms. A thread's id is derived
+   deterministically from the two participants' emails so the same
+   pair of users always lands on the same thread, however either
+   side navigates there. */
 function dmThreadId(emailA, emailB) {
   return 'dm_' + [emailA.toLowerCase(), emailB.toLowerCase()].sort().join('|');
 }
@@ -270,6 +286,34 @@ function getDirectThreadsForCurrentUser() {
     });
 }
 
+/* ---- Cross-tab live updates ----
+   The browser fires a native 'storage' event in every OTHER open tab
+   (never the tab that made the change) whenever a localStorage key is
+   written. That's exactly the signal we need for near-real-time sync
+   across tabs with no backend: a page subscribes to the storage
+   key(s) it cares about, and when that key changes elsewhere, its
+   callback re-renders from the fresh localStorage state.
+
+   Usage:  onDataChange(STORAGE_KEYS.announcements, () => renderAll());
+   Multiple keys: onDataChange([STORAGE_KEYS.chatRooms, STORAGE_KEYS.directThreads], fn);
+*/
+const dataChangeListeners = {};
+
+function onDataChange(keys, callback) {
+  (Array.isArray(keys) ? keys : [keys]).forEach((key) => {
+    if (!dataChangeListeners[key]) dataChangeListeners[key] = [];
+    dataChangeListeners[key].push(callback);
+  });
+}
+
+window.addEventListener('storage', (e) => {
+  // e.key is null when the whole storage area is cleared (e.g. via
+  // localStorage.clear()) rather than a single key changing.
+  if (!e.key) return;
+  const callbacks = dataChangeListeners[e.key];
+  if (callbacks) callbacks.forEach((cb) => cb(e));
+});
+
 /* ---- Helpers ---- */
 function fmtDate(iso) {
   if (!iso) return '';
@@ -284,9 +328,15 @@ function personInitials(name) {
   return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
-/* Redirect helper for pages that require login */
+/* Redirect helper for pages that require login. Also keeps this tab
+   in sync if the session ends in another tab (e.g. the user logs out
+   from their phone/another window) by watching the currentUser key. */
 function requireAuth() {
   if (!getCurrentUser()) {
     window.location.href = 'login-choice.html';
+    return;
   }
+  onDataChange(STORAGE_KEYS.currentUser, (e) => {
+    if (!e.newValue) window.location.href = 'login-choice.html';
+  });
 }
