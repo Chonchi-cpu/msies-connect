@@ -1,3 +1,4 @@
+
 requireAuth();
 renderNavbar('feed');
 
@@ -135,3 +136,8 @@ function submitComment(e, id) {
 }
 
 renderAll();
+
+/* Keep this tab's feed in sync if a post is created/edited/deleted,
+   or a comment is added, from another tab (or another logged-in
+   user in another window). */
+onDataChange(STORAGE_KEYS.announcements, renderAll);
