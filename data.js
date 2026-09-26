@@ -1,8 +1,3 @@
-/* ============================================================
-   data.js - seed data + localStorage persistence helpers.
-   Loaded on every page before any page-specific script.
-   ============================================================ */
-
 const DEFAULT_USERS = [
   { email: 'admin1@email.com', password: 'admin123', name: 'Admin SC', role: 'admin' },
   { email: 'j.torres@msies.edu.ph', password: 'teacher123', name: 'Mrs. Torres', role: 'teacher' },
@@ -95,6 +90,7 @@ const STORAGE_KEYS = {
   users: 'msies_users',
   announcements: 'msies_announcements',
   chatRooms: 'msies_chatrooms',
+  directThreads: 'msies_direct_threads',
   nextId: 'msies_next_announcement_id',
   currentUser: 'msies_current_user'
 };
@@ -109,6 +105,9 @@ function initData() {
   }
   if (!localStorage.getItem(STORAGE_KEYS.chatRooms)) {
     localStorage.setItem(STORAGE_KEYS.chatRooms, JSON.stringify(DEFAULT_CHATROOMS));
+  }
+  if (!localStorage.getItem(STORAGE_KEYS.directThreads)) {
+    localStorage.setItem(STORAGE_KEYS.directThreads, JSON.stringify([]));
   }
 }
 initData();
@@ -135,6 +134,31 @@ function logoutUser() {
 function isStaff() {
   const u = getCurrentUser();
   return !!u && (u.role === 'admin' || u.role === 'teacher');
+}
+function updateCurrentUser(data) {
+  const current = getCurrentUser();
+  if (!current) return;
+  const updated = { ...current, ...data };
+  const users = getUsers().map((u) => (u.email === current.email ? { ...u, ...data } : u));
+  saveUsers(users);
+  setCurrentUser(updated);
+  return updated;
+}
+function getUserByEmail(email) {
+  if (!email) return null;
+  return getUsers().find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
+}
+/* Directory search used by the navbar search bar. Excludes the
+   current user (you already have your own Profile page) and caps
+   results so the dropdown stays short. */
+function searchUsers(query) {
+  const q = (query || '').trim().toLowerCase();
+  if (!q) return [];
+  const current = getCurrentUser();
+  return getUsers()
+    .filter((u) => !current || u.email.toLowerCase() !== current.email.toLowerCase())
+    .filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
+    .slice(0, 8);
 }
 
 /* ---- Announcements ---- */
@@ -178,10 +202,72 @@ function saveChatRooms(rooms) {
   localStorage.setItem(STORAGE_KEYS.chatRooms, JSON.stringify(rooms));
 }
 function sendChatMessage(roomId, text) {
+  const user = getCurrentUser();
+  const author = user ? user.name : 'Me';
   const rooms = getChatRooms().map((r) =>
-    r.id === roomId ? { ...r, messages: [...r.messages, { author: 'Me', text }] } : r
+    r.id === roomId ? { ...r, messages: [...r.messages, { author, text }] } : r
   );
   saveChatRooms(rooms);
+}
+
+/* ---- Direct messages ----*/
+function dmThreadId(emailA, emailB) {
+  return 'dm_' + [emailA.toLowerCase(), emailB.toLowerCase()].sort().join('|');
+}
+function getDirectThreads() {
+  return JSON.parse(localStorage.getItem(STORAGE_KEYS.directThreads) || '[]');
+}
+function saveDirectThreads(threads) {
+  localStorage.setItem(STORAGE_KEYS.directThreads, JSON.stringify(threads));
+}
+/* Ensures a thread with otherEmail exists for the current user and
+   returns it (without sending a message). Used when opening a DM
+   from someone's profile before they've typed anything yet. */
+function getOrCreateDirectThread(otherEmail) {
+  const user = getCurrentUser();
+  if (!user || !otherEmail) return null;
+  const id = dmThreadId(user.email, otherEmail);
+  const threads = getDirectThreads();
+  let thread = threads.find((t) => t.id === id);
+  if (!thread) {
+    thread = { id, participants: [user.email.toLowerCase(), otherEmail.toLowerCase()], messages: [] };
+    threads.push(thread);
+    saveDirectThreads(threads);
+  }
+  return thread;
+}
+function sendDirectMessage(otherEmail, text) {
+  const user = getCurrentUser();
+  if (!user || !otherEmail) return;
+  const id = dmThreadId(user.email, otherEmail);
+  const threads = getDirectThreads();
+  let thread = threads.find((t) => t.id === id);
+  if (!thread) {
+    thread = { id, participants: [user.email.toLowerCase(), otherEmail.toLowerCase()], messages: [] };
+    threads.push(thread);
+  }
+  thread.messages.push({ author: user.name, authorEmail: user.email, text });
+  saveDirectThreads(threads);
+}
+/* Returns the current user's DM threads, each annotated with the
+   other participant's display name/email so chat.js doesn't need to
+   know about the raw participants array. */
+function getDirectThreadsForCurrentUser() {
+  const user = getCurrentUser();
+  if (!user) return [];
+  const myEmail = user.email.toLowerCase();
+  return getDirectThreads()
+    .filter((t) => t.participants.includes(myEmail))
+    .map((t) => {
+      const otherEmail = t.participants.find((e) => e !== myEmail);
+      const otherUser = getUserByEmail(otherEmail);
+      return {
+        id: t.id,
+        name: otherUser ? otherUser.name : otherEmail,
+        otherEmail,
+        messages: t.messages
+      };
+    });
 }
 
 /* ---- Helpers ---- */
@@ -189,6 +275,13 @@ function fmtDate(iso) {
   if (!iso) return '';
   const d = new Date(iso + 'T00:00:00');
   return d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+}
+/* Shared initials helper for the navbar search dropdown and the
+   view-profile page. (chat.js and profile.js each keep their own
+   page-local copy of this same logic.) */
+function personInitials(name) {
+  if (!name) return '?';
+  return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
 /* Redirect helper for pages that require login */
