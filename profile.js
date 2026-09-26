@@ -85,3 +85,7 @@ function renderAll() {
 }
 
 renderAll();
+
+/* If the same account's details are changed from another tab, pick
+   up the fresh copy here too rather than showing stale fields. */
+onDataChange(STORAGE_KEYS.currentUser, renderAll);
