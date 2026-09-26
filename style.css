@@ -1,4 +1,4 @@
-/*style.css - shared styles for MSIES Connect*/
+/*style.css - shared styles for MSIES Connect */
 
 :root {
   --navy: #1F3B57;
@@ -54,7 +54,7 @@ a:hover { text-decoration: underline; }
   padding: 0 20px;
 }
 
-/*Top navigation*/
+/* ---- Top navigation ---- */
 .topbar {
   background: var(--paper);
   border-bottom: 1px solid var(--line);
@@ -90,6 +90,53 @@ a:hover { text-decoration: underline; }
   color: var(--navy);
   background: var(--sage);
 }
+
+/* ---- Navbar search-people bar ---- */
+.nav-search {
+  position: relative;
+  flex: 1;
+  max-width: 320px;
+  margin: 0 20px;
+}
+.nav-search input[type="text"] {
+  width: 100%;
+  max-width: none;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  font-size: 0.88rem;
+}
+.nav-search input[type="text"]:focus {
+  background: var(--paper);
+}
+.nav-search-results {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  z-index: 50;
+}
+.nav-search-results.open { display: block; }
+.nav-search-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  text-decoration: none;
+  color: inherit;
+}
+.nav-search-item:hover { background: var(--navy-tint); }
+.nav-search-item-text { display: flex; flex-direction: column; }
+.nav-search-item-text strong { font-size: 0.88rem; }
+.nav-search-item-text small { color: var(--muted); }
+.nav-search-empty { padding: 12px 14px; color: var(--muted); font-size: 0.85rem; }
 
 /* ---- Layout ---- */
 main.container {
@@ -143,7 +190,7 @@ h2 { font-size: 1.5rem; }
 }
 .avatar.lg { width: 56px; height: 56px; font-size: 1.25rem; }
 
-/* ---- Icon circle ---- */
+/* ---- Icon circle (used in confirmation / status states) ---- */
 .icon-circle {
   width: 60px;
   height: 60px;
@@ -158,7 +205,7 @@ h2 { font-size: 1.5rem; }
 .icon-circle.success { background: var(--sage); color: var(--sage-dark); }
 .icon-circle.info { background: var(--info-tint); color: var(--navy); }
 
-/* ---- Hero  ---- */
+/* ---- Hero (landing page) ---- */
 .hero {
   text-align: center;
   padding: 56px 28px;
@@ -331,7 +378,9 @@ select:focus {
 textarea { min-height: 90px; resize: vertical; }
 label { margin-right: 12px; }
 
-/* Category  */
+/* Category / role pill-toggle radios (Category, "I am a" on Register) —
+   works with the existing plain <label><input type="radio"> markup, no
+   extra classes required. */
 form p label:has(input[type="radio"]) {
   display: inline-flex;
   align-items: center;
@@ -615,6 +664,8 @@ table.calendar .day-event.badge-reminders { color: var(--lavender-dark); backgro
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 .photo-drop:hover { background: #F0F5F4; border-color: var(--navy); }
+.photo-drop-loading { opacity: 0.6; pointer-events: none; }
+.photo-drop-loading::after { content: 'Processing image…'; display: block; font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
 .photo-preview {
   max-width: 100%;
   max-height: 160px;
@@ -661,6 +712,14 @@ table.calendar .day-event.badge-reminders { color: var(--lavender-dark); backgro
 .field-row > div { flex: 1; min-width: 160px; }
 .field-row input { max-width: none; }
 
+/* ---- Clickable name (opens the profile modal from chat/comments) ---- */
+.person-name-link {
+  color: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+.person-name-link:hover { color: var(--navy); text-decoration: underline; }
+
 /* ---- Comment thread with avatars ---- */
 .comment-item {
   display: flex;
@@ -677,7 +736,9 @@ table.calendar .day-event.badge-reminders { color: var(--lavender-dark); backgro
 .comment-item .comment-bubble strong { display: block; font-size: 0.85rem; }
 .comment-item .comment-bubble span { font-size: 0.88rem; color: var(--ink); }
 
-/* Responsive breakpoints */
+/* ============================================================
+   Responsive breakpoints
+   ============================================================ */
 @media (max-width: 720px) {
   .topbar-inner {
     flex-direction: column;
@@ -686,6 +747,7 @@ table.calendar .day-event.badge-reminders { color: var(--lavender-dark); backgro
   }
   .navlinks { flex-wrap: wrap; }
   .navlinks a { margin-left: 0; margin-right: 6px; }
+  .nav-search { max-width: none; width: 100%; margin: 0; order: 3; }
 
   .hero { padding: 40px 22px; }
   .hero h1 { font-size: 1.5rem; }
@@ -719,4 +781,3 @@ table.calendar .day-event.badge-reminders { color: var(--lavender-dark); backgro
   .auth-box { margin: 24px auto; padding: 22px; }
   .filters .btn { margin-bottom: 8px; }
 }
-
