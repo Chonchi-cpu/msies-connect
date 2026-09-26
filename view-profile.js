@@ -1,9 +1,7 @@
 /* ============================================================
    view-profile.js - page logic for view-profile.html
    Read-only profile view for someone found via the navbar search.
-   Shows only directory-appropriate info (name, role, section) —
-   never their password, phone, or notification preferences, which
-   stay private to the account owner on profile.html. Includes a
+   Shows only directory-appropriate info (name, role, section). Includes a
    "Message" button that opens/creates a 1:1 DM thread and sends
    the viewer straight to it in Chat.
    ============================================================ */
@@ -67,4 +65,11 @@ function messageUser(encodedEmail) {
     return;
   }
   renderProfile(user);
+
+  /* If this person edits their own name/section/etc. from another
+     tab while we're looking at their profile, refresh it here too. */
+  onDataChange(STORAGE_KEYS.users, () => {
+    const fresh = getUserByEmail(email);
+    if (fresh) renderProfile(fresh);
+  });
 })();
