@@ -1,3 +1,4 @@
+
 function renderAnnouncementCard(a) {
   const metaParts = [];
   if (a.date) metaParts.push(fmtDate(a.date));
@@ -14,15 +15,33 @@ function renderAnnouncementCard(a) {
     `
     : '';
 
+  const me = getCurrentUser();
   const comments = (a.comments || [])
-    .map(
-      (c) => `
+    .map((c) => {
+      const author = findCommentAuthor(c);
+      const isMe = !!(author && me && author.email.toLowerCase() === me.email.toLowerCase());
+      const profileHref = author
+        ? (isMe ? 'profile.html' : `view-profile.html?email=${encodeURIComponent(author.email)}`)
+        : '';
+      const avatar = author
+        ? `<a class="avatar comment-avatar" href="${profileHref}" title="View profile" aria-label="View ${escapeAttr(author.name)}'s profile">${initialsFor(c.author)}</a>`
+        : `<span class="avatar">${initialsFor(c.author)}</span>`;
+      const name = author
+        ? `<a class="comment-author" href="${profileHref}">${c.author}</a>`
+        : `<strong>${c.author}</strong>`;
+      const dm = author && !isMe
+        ? `<a class="comment-dm" href="chat.html?dm=${encodeURIComponent(author.email)}" title="Send ${escapeAttr(author.name)} a personal message">&#9993; Message</a>`
+        : '';
+      return `
         <div class="comment-item">
-          <span class="avatar">${initialsFor(c.author)}</span>
-          <div class="comment-bubble"><strong>${personNameHtml(c.author)}</strong><span>${c.text}</span></div>
+          ${avatar}
+          <div class="comment-bubble">
+            <div class="comment-head">${name}${dm}</div>
+            <span>${c.text}</span>
+          </div>
         </div>
-      `
-    )
+      `;
+    })
     .join('');
 
   return `
