@@ -1,4 +1,3 @@
-/*style.css - shared styles for MSIES Connect */
 
 :root {
   --navy: #1F3B57;
@@ -32,6 +31,11 @@
 }
 
 * { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+img, video, svg { max-width: 100%; height: auto; }
+.card, .chat-main, .feed-sidebar, .modal-box { overflow-wrap: anywhere; }
+button, .btn, .navlinks a, .chat-room-item { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
 body {
   margin: 0;
@@ -120,7 +124,9 @@ a:hover { text-decoration: underline; }
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 360px;
   z-index: 50;
 }
 .nav-search-results.open { display: block; }
@@ -378,9 +384,7 @@ select:focus {
 textarea { min-height: 90px; resize: vertical; }
 label { margin-right: 12px; }
 
-/* Category / role pill-toggle radios (Category, "I am a" on Register) —
-   works with the existing plain <label><input type="radio"> markup, no
-   extra classes required. */
+/* Category / role pill-toggle radios (Category, "I am a" on Register) */
 form p label:has(input[type="radio"]) {
   display: inline-flex;
   align-items: center;
@@ -600,7 +604,14 @@ table.calendar .day-event.badge-reminders { color: var(--lavender-dark); backgro
   border-color: var(--navy);
   background: var(--navy-tint);
 }
-.chat-room-item small { display: block; color: var(--muted); margin-top: 2px; }
+.chat-room-item small {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  color: var(--muted);
+  margin-top: 2px;
+}
 .chat-main {
   flex: 1;
   background: var(--paper);
@@ -609,16 +620,159 @@ table.calendar .day-event.badge-reminders { color: var(--lavender-dark); backgro
   padding: 20px;
   box-shadow: var(--shadow-sm);
 }
-.chat-messages { margin: 12px 0; min-height: 150px; }
-.chat-messages p {
-  display: inline-block;
-  background: var(--bg);
-  border-radius: var(--radius-sm);
-  padding: 8px 14px;
-  margin: 5px 0;
-  max-width: 85%;
-  font-size: 0.9rem;
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+  min-height: 150px;
+  max-height: 460px;
+  overflow-y: auto;
+  padding: 4px 4px 4px 0;
+  scroll-behavior: smooth;
 }
+.chat-empty { font-size: 0.85rem; margin: 0; }
+
+/* one message per row; own messages right, others left */
+.chat-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-width: 78%;
+  padding: 8px 14px;
+  border-radius: 16px;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.chat-msg-author { font-size: 0.72rem; font-weight: 700; opacity: 0.75; }
+.chat-msg.theirs {
+  align-self: flex-start;
+  background: var(--bg);
+  color: var(--ink);
+  border-bottom-left-radius: 5px;
+}
+.chat-msg.mine {
+  align-self: flex-end;
+  background: var(--navy);
+  background-image: linear-gradient(135deg, var(--navy), var(--navy-dark));
+  color: #fff;
+  border-bottom-right-radius: 5px;
+}
+.chat-msg.mine .chat-msg-author { text-align: right; }
+/* ---- Chat header, options menu, system lines ---- */
+.chat-rooms-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.chat-dm-label {
+  margin: 16px 0 8px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.chat-restore {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+.chat-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.chat-header-info { min-width: 0; }
+.chat-header h3 { margin: 0 0 2px; overflow-wrap: anywhere; }
+.chat-header p { margin: 0; }
+.chat-menu-wrap { position: relative; flex-shrink: 0; }
+.chat-menu-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line);
+  background: var(--paper);
+  color: var(--navy);
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.chat-menu-btn:hover, .chat-menu-btn[aria-expanded="true"] { background: var(--navy-tint); border-color: var(--navy); }
+.chat-menu {
+  display: none;
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 200px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  z-index: 40;
+}
+.chat-menu.open { display: block; }
+.chat-menu-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.chat-menu-item:hover { background: var(--navy-tint); text-decoration: none; }
+.chat-menu-item.danger { color: var(--danger); }
+.chat-menu-item.danger:hover { background: var(--danger-tint); }
+.chat-system {
+  align-self: center;
+  max-width: 90%;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--muted);
+  padding: 2px 10px;
+  overflow-wrap: anywhere;
+}
+
+/* ---- People pickers / member list (chat modals) ---- */
+input.pick-search { max-width: none; margin-bottom: 8px; }
+.pick-list, .member-list {
+  max-height: 320px;
+  overflow-y: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+}
+.member-list { margin-bottom: 8px; }
+.pick-row, .member-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  margin: 0;
+  border-bottom: 1px solid var(--line-soft);
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+.pick-row:last-child, .member-row:last-child { border-bottom: none; }
+.pick-row:hover, .member-row:hover { background: var(--navy-tint); text-decoration: none; }
+.pick-row input[type="checkbox"] { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--sage-dark); margin: 0; }
+.pick-text { display: flex; flex-direction: column; min-width: 0; }
+.pick-text strong { font-size: 0.92rem; }
+.pick-text small { color: var(--muted); }
+.form-error { color: var(--danger); font-size: 0.85rem; font-weight: 600; }
+
 .chat-send-form {
   display: flex;
   gap: 10px;
@@ -712,14 +866,6 @@ table.calendar .day-event.badge-reminders { color: var(--lavender-dark); backgro
 .field-row > div { flex: 1; min-width: 160px; }
 .field-row input { max-width: none; }
 
-/* ---- Clickable name (opens the profile modal from chat/comments) ---- */
-.person-name-link {
-  color: inherit;
-  text-decoration: none;
-  cursor: pointer;
-}
-.person-name-link:hover { color: var(--navy); text-decoration: underline; }
-
 /* ---- Comment thread with avatars ---- */
 .comment-item {
   display: flex;
@@ -735,34 +881,106 @@ table.calendar .day-event.badge-reminders { color: var(--lavender-dark); backgro
 }
 .comment-item .comment-bubble strong { display: block; font-size: 0.85rem; }
 .comment-item .comment-bubble span { font-size: 0.88rem; color: var(--ink); }
+.comment-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; margin-bottom: 2px; }
+.comment-head strong { display: inline; }
+.comment-author { font-weight: 700; font-size: 0.85rem; color: var(--navy); text-decoration: none; }
+.comment-author:hover { text-decoration: underline; }
+.comment-avatar { text-decoration: none; transition: box-shadow 0.15s ease; }
+.comment-avatar:hover { text-decoration: none; box-shadow: 0 0 0 3px rgba(37, 106, 79, 0.25); }
+.comment-dm {
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--sage-dark);
+  background: var(--sage);
+  padding: 2px 10px;
+  border-radius: 999px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.comment-dm:hover { background: var(--sage-dark); color: #fff; text-decoration: none; }
 
 /* ============================================================
-   Responsive breakpoints
+   Responsive breakpoints (mobile-first fixes layered on top)
+   - <= 900px  tablets / small laptops
+   - <= 720px  phones & small tablets
+   - <= 480px  small phones
+   - <= 360px  very small phones
+   - hover:none  touch devices (bigger tap targets)
    ============================================================ */
+
+/* Respect notches / rounded corners (needs viewport-fit=cover) */
+.topbar-inner, main.container {
+  padding-left: max(20px, env(safe-area-inset-left));
+  padding-right: max(20px, env(safe-area-inset-right));
+}
+main.container { padding-bottom: max(56px, calc(env(safe-area-inset-bottom) + 32px)); }
+
+@media (max-width: 900px) {
+  .feed-sidebar { width: 250px; }
+  .chat-rooms { width: 220px; }
+  .nav-search { max-width: 220px; margin: 0 12px; }
+  .navlinks a { padding: 8px 12px; }
+}
+
 @media (max-width: 720px) {
+  .container { padding-left: 16px; padding-right: 16px; }
+  .topbar-inner, main.container {
+    padding-left: max(16px, env(safe-area-inset-left));
+    padding-right: max(16px, env(safe-area-inset-right));
+  }
+  main.container { padding-top: 20px; }
+  h2 { font-size: 1.3rem; }
+
+  /* ---- Navbar: brand on top, search, then evenly spaced tabs ---- */
+  .topbar { position: sticky; top: 0; z-index: 60; }
   .topbar-inner {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 10px;
+    padding-top: 12px;
+    padding-bottom: 10px;
   }
-  .navlinks { flex-wrap: wrap; }
-  .navlinks a { margin-left: 0; margin-right: 6px; }
-  .nav-search { max-width: none; width: 100%; margin: 0; order: 3; }
+  .brand { align-self: flex-start; }
+  .nav-search { max-width: none; width: 100%; margin: 0; order: 2; }
+  .navlinks {
+    order: 3;
+    width: 100%;
+    justify-content: space-between;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .navlinks::-webkit-scrollbar { display: none; }
+  .navlinks a {
+    flex: 1 1 0;
+    margin: 0;
+    padding: 9px 6px;
+    text-align: center;
+    white-space: nowrap;
+    font-size: 0.88rem;
+  }
+  .nav-search-results { max-height: 60vh; overflow-y: auto; }
 
-  .hero { padding: 40px 22px; }
+  /* ---- Landing ---- */
+  .hero { padding: 36px 20px; }
   .hero h1 { font-size: 1.5rem; }
+  .hero .actions { display: flex; flex-direction: column; gap: 10px; }
+  .hero .actions .btn { justify-content: center; margin: 0; }
+  .recent-posts-grid { grid-template-columns: 1fr; }
+  main.container > h2[style] { margin-top: 28px !important; }
 
-  .feed-layout { flex-direction: column; }
-  .feed-sidebar { width: 100%; }
+  /* ---- Feed ---- */
+  .feed-layout { flex-direction: column; gap: 16px; }
+  .feed-main { width: 100%; }
+  .feed-sidebar { width: 100%; order: -1; }
+  .filters { display: flex; flex-wrap: wrap; gap: 8px; }
+  .filters .btn { margin: 0; padding: 9px 16px; }
+  .page-header-row .btn { flex-shrink: 0; }
+  .card { padding: 16px; }
+  .card-top { flex-wrap: wrap; gap: 8px; }
+  .post-photo { max-height: 220px; }
 
-  .chat-layout { flex-direction: column; }
-  .chat-rooms { width: 100%; }
-
-  .calendar-scroll { overflow-x: auto; }
-  table.calendar { min-width: 620px; }
-
-  .modal-box { width: 94%; padding: 18px; }
-
+  /* ---- Forms: 16px stops iOS zoom-on-focus; fields fill the width ---- */
   input[type="text"],
   input[type="email"],
   input[type="password"],
@@ -771,13 +989,153 @@ table.calendar .day-event.badge-reminders { color: var(--lavender-dark); backgro
   textarea,
   select {
     max-width: none;
+    font-size: 16px;
+    min-height: 44px;
   }
+  textarea { min-height: 110px; }
+  .field-row { gap: 0; }
+  .field-row > div { min-width: 100%; }
+  .comment-form { gap: 8px; }
+  .comment-form .btn { flex-shrink: 0; }
 
-  .card-top { flex-wrap: wrap; gap: 8px; }
+  /* ---- Auth ---- */
+  .auth-box { margin: 20px auto; padding: 24px 20px; border-radius: var(--radius-md); }
+  .auth-box .btn { justify-content: center; }
+
+  /* ---- Calendar: fit the screen, no sideways scrolling ---- */
+  .calendar-scroll { overflow-x: visible; }
+  table.calendar { min-width: 0; table-layout: fixed; }
+  table.calendar th, table.calendar td {
+    padding: 4px 2px;
+    height: 58px;
+    font-size: 0.78rem;
+    text-align: center;
+    overflow: hidden;
+  }
+  table.calendar th { font-size: 0.66rem; letter-spacing: 0; padding: 8px 0; text-align: center; }
+  table.calendar td.is-today .day-num { width: 24px; height: 24px; margin: 0 auto; }
+  /* event titles become coloured dots; tap the day to read them */
+  table.calendar .day-event {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    padding: 0;
+    margin: 3px 1px 0;
+    border-radius: 50%;
+    font-size: 0;
+    line-height: 0;
+    background: var(--sage-dark);
+    vertical-align: top;
+  }
+  table.calendar .day-event.badge-holidays { background: var(--gold-dark); }
+  table.calendar .day-event.badge-reminders { background: var(--lavender-dark); }
+  .calendar-header { gap: 10px; }
+  .calendar-title-group { gap: 10px; }
+  .calendar-nav-btn { width: 40px; height: 40px; }
+  .calendar-legend { gap: 14px; }
+
+  /* ---- Chat: rooms become a swipeable strip above the thread ---- */
+  .chat-layout { flex-direction: column; gap: 12px; }
+  .chat-rooms {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    align-items: stretch;
+    scrollbar-width: none;
+  }
+  .chat-rooms::-webkit-scrollbar { display: none; }
+  .chat-rooms-head { flex: 0 0 auto; margin: 0; align-self: center; }
+  .chat-rooms-title { display: none; }
+  .chat-rooms-head .btn { white-space: nowrap; }
+  .chat-dm-label { align-self: center; margin: 0 4px; white-space: nowrap; }
+  .chat-restore { align-self: center; flex: 0 0 auto; margin: 0 8px; white-space: nowrap; }
+  .chat-room-item {
+    flex: 0 0 auto;
+    width: 190px;
+    margin: 0;
+  }
+  .chat-room-item strong {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chat-room-item small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .chat-main { padding: 14px; }
+  .chat-messages {
+    max-height: 50vh;
+    max-height: 50dvh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .chat-msg { max-width: 88%; }
+  .chat-send-form { gap: 8px; }
+  .chat-send-form .btn { flex-shrink: 0; }
+
+  /* ---- Modal: bottom sheet that never overflows the screen ---- */
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-box {
+    width: 100%;
+    max-width: none;
+    max-height: 92vh;
+    max-height: 92dvh;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 18px 16px max(18px, env(safe-area-inset-bottom));
+  }
+  .modal-close { font-size: 1.9rem; padding: 4px 10px; }
+  .modal-box p[style*="text-align:right"] { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: 8px; }
+  .modal-box p[style*="text-align:right"] .btn { flex: 1 1 auto; justify-content: center; }
+
+  /* ---- Profile ---- */
+  #profile-header > div { flex-wrap: wrap; gap: 12px; }
+  .pick-list, .member-list { max-height: 38vh; }
+  .chat-menu { min-width: 190px; }
 }
 
 @media (max-width: 480px) {
+  body { line-height: 1.5; }
+  .brand { font-size: 1.02rem; }
   .hero h1 { font-size: 1.3rem; }
-  .auth-box { margin: 24px auto; padding: 22px; }
-  .filters .btn { margin-bottom: 8px; }
+  .hero-eyebrow { font-size: 0.72rem; }
+  .auth-box { margin: 14px auto; padding: 20px 16px; }
+  .btn { padding: 11px 18px; }
+  .card h3 { font-size: 1.05rem; }
+  .chat-room-item { width: 160px; }
+  table.calendar th, table.calendar td { height: 52px; }
+  .calendar-header strong { font-size: 1.05rem; }
+  .page-header-row { align-items: flex-start; }
+}
+
+@media (max-width: 360px) {
+  .navlinks a { font-size: 0.8rem; padding: 9px 2px; }
+  table.calendar td { height: 46px; font-size: 0.72rem; }
+  .logo-badge { width: 24px; height: 24px; margin-right: 7px; }
+}
+
+/* Landscape phones: keep the sticky header from eating the screen */
+@media (max-height: 480px) and (orientation: landscape) {
+  .topbar { position: static; }
+  .modal-box { max-height: 96vh; }
+}
+
+/* Touch devices: comfortable tap targets, no sticky hover states */
+@media (hover: none) and (pointer: coarse) {
+  .btn.btn-small { padding: 9px 16px; min-height: 40px; }
+  .comment-dm { padding: 6px 12px; font-size: 0.78rem; }
+  .comment-author { padding: 4px 0; }
+  .navlinks a { min-height: 40px; display: inline-flex; align-items: center; justify-content: center; }
+  .nav-search-item { padding: 13px 14px; }
+  form p label:has(input[type="radio"]) { padding: 10px 16px; }
+  .card:hover, .choice-option:hover, .chat-room-item:hover { box-shadow: var(--shadow-sm); }
+  table.calendar td.clickable:hover { background: transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; }
 }
