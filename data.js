@@ -1,3 +1,8 @@
+/* ============================================================
+   data.js - seed data + localStorage persistence helpers.
+   Loaded on every page before any page-specific script.
+   ============================================================ */
+
 const DEFAULT_USERS = [
   { email: 'admin1@email.com', password: 'admin123', name: 'Admin SC', role: 'admin' },
   { email: 'j.torres@msies.edu.ph', password: 'teacher123', name: 'Mrs. Torres', role: 'teacher' },
@@ -15,8 +20,8 @@ const DEFAULT_ANNOUNCEMENTS = [
     details:
       "All parents and guardians are invited to the first PTA General Assembly of the school year. We'll cover the school calendar, canteen guidelines, and open the floor for questions.",
     comments: [
-      { author: 'Maria Reyes', text: 'Is this the same venue as last year, the covered court?' },
-      { author: 'Mrs. Torres (Grade 3 Adviser)', text: 'Yes, same venue. Doors open 7:30 AM.' }
+      { author: 'Maria Reyes', authorEmail: 'maria.reyes@email.com', text: 'Is this the same venue as last year, the covered court?' },
+      { author: 'Mrs. Torres (Grade 3 Adviser)', authorEmail: 'j.torres@msies.edu.ph', text: 'Yes, same venue. Doors open 7:30 AM.' }
     ]
   },
   {
@@ -91,6 +96,7 @@ const STORAGE_KEYS = {
   announcements: 'msies_announcements',
   chatRooms: 'msies_chatrooms',
   directThreads: 'msies_direct_threads',
+  chatHidden: 'msies_chat_hidden',
   nextId: 'msies_next_announcement_id',
   currentUser: 'msies_current_user'
 };
@@ -109,6 +115,7 @@ function initData() {
   if (!localStorage.getItem(STORAGE_KEYS.directThreads)) {
     localStorage.setItem(STORAGE_KEYS.directThreads, JSON.stringify([]));
   }
+  migrateChatRooms();
 }
 initData();
 
@@ -118,6 +125,7 @@ function getUsers() {
 }
 function saveUsers(users) {
   localStorage.setItem(STORAGE_KEYS.users, JSON.stringify(users));
+  syncAutoJoinRooms(users);
 }
 
 /* ---- Current session ---- */
@@ -148,29 +156,48 @@ function getUserByEmail(email) {
   if (!email) return null;
   return getUsers().find((u) => u.email.toLowerCase() === email.toLowerCase()) || null;
 }
-/* Best-effort name -> user lookup. Chat messages and comments only
-   ever stored the display name someone typed/was seeded with, never
-   an email, so this is how the profile-modal name links (see
-   components/profileModal.js) find the matching account. Returns
-   null on no exact match (e.g. seed placeholders like "Me" or
-   "School Admin", or a name with an added suffix) so callers can
-   fall back to plain, non-clickable text instead of guessing. */
-function getUserByName(name) {
-  if (!name) return null;
-  const clean = name.trim().toLowerCase();
-  return getUsers().find((u) => u.name.trim().toLowerCase() === clean) || null;
+/* Lower-cases, strips accents and collapses extra spaces so
+   "  JUAN   dela Cruz " and "juan dela cruz" compare equal. */
+function normalizeText(str) {
+  return String(str == null ? '' : str)
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
-/* Directory search used by the navbar search bar. Excludes the
-   current user (you already have your own Profile page) and caps
-   results so the dropdown stays short. */
-function searchUsers(query) {
-  const q = (query || '').trim().toLowerCase();
+
+/* Directory search used by the navbar search bar. Every registered
+   account is searchable the moment it exists. Matching is
+   order-independent ("cruz juan" finds Juan Dela Cruz) and also looks
+   at email, role and grade/section. Excludes the current user (you
+   already have your own Profile page). Best matches come first:
+   name starts with the query, then a name word starts with it, then
+   anything else; ties keep sign-up order. */
+function searchUsers(query, limit) {
+  const q = normalizeText(query);
   if (!q) return [];
+  const tokens = q.split(' ');
   const current = getCurrentUser();
-  return getUsers()
-    .filter((u) => !current || u.email.toLowerCase() !== current.email.toLowerCase())
-    .filter((u) => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q))
-    .slice(0, 8);
+  const me = current ? (current.email || '').toLowerCase() : '';
+  const scored = [];
+
+  getUsers().forEach((u, index) => {
+    if (!u || !u.email) return;
+    if (me && u.email.toLowerCase() === me) return;
+    const name = normalizeText(u.name);
+    const hay = [name, normalizeText(u.email), normalizeText(u.role), normalizeText(u.section)].join(' ');
+    if (!tokens.every((t) => hay.includes(t))) return;
+
+    let score = 0;
+    if (name.startsWith(q)) score = 3;
+    else if (name.split(' ').some((w) => w.startsWith(tokens[0]))) score = 2;
+    else if (name.includes(q)) score = 1;
+    scored.push({ u, score, index });
+  });
+
+  scored.sort((a, b) => b.score - a.score || a.index - b.index);
+  return scored.slice(0, limit || 25).map((x) => x.u);
 }
 
 /* ---- Announcements ---- */
@@ -201,9 +228,23 @@ function addComment(id, text) {
   const user = getCurrentUser();
   const list = getAnnouncements().map((a) => {
     if (a.id !== id) return a;
-    return { ...a, comments: [...a.comments, { author: user ? user.name : 'Guest', text }] };
+    return { ...a, comments: [...a.comments, { author: user ? user.name : 'Guest', authorEmail: user ? user.email : '', text }] };
   });
   saveAnnouncements(list);
+}
+
+/* Finds the registered user behind a comment so the card can link to
+   their profile / start a DM. New comments store authorEmail; older
+   ones (saved before that existed) fall back to matching the display
+   name, ignoring a trailing "(Grade 3 Adviser)" style suffix. Returns
+   null for guests or names that match no account. */
+function findCommentAuthor(comment) {
+  if (!comment) return null;
+  const byEmail = getUserByEmail(comment.authorEmail);
+  if (byEmail) return byEmail;
+  const name = (comment.author || '').replace(/\s*\(.*\)\s*$/, '').trim().toLowerCase();
+  if (!name || name === 'guest') return null;
+  return getUsers().find((u) => u.name.trim().toLowerCase() === name) || null;
 }
 
 /* ---- Chat rooms ---- */
@@ -220,6 +261,119 @@ function sendChatMessage(roomId, text) {
     r.id === roomId ? { ...r, messages: [...r.messages, { author, text }] } : r
   );
   saveChatRooms(rooms);
+}
+
+/* ---- Group membership, rename, create, delete-for-me ----
+   Every room has a memberEmails list and only its members see it.
+   The original school rooms are marked autoJoin, so anyone who
+   registers later is added to them automatically (as before, where
+   everyone saw every room). Groups made with "+ New group" are
+   private to whoever is added. Rooms keep one shared message list;
+   "system" messages record who renamed or added whom. */
+function migrateChatRooms() {
+  const rooms = getChatRooms();
+  const emails = getUsers().map((u) => u.email.toLowerCase());
+  let changed = false;
+  rooms.forEach((r) => {
+    if (!Array.isArray(r.memberEmails)) {
+      r.memberEmails = [...emails];
+      r.autoJoin = true;
+      changed = true;
+    }
+  });
+  if (changed) saveChatRooms(rooms);
+}
+function syncAutoJoinRooms(users) {
+  const raw = localStorage.getItem(STORAGE_KEYS.chatRooms);
+  if (!raw) return;
+  const emails = (users || getUsers()).map((u) => u.email.toLowerCase());
+  let changed = false;
+  const rooms = JSON.parse(raw);
+  rooms.forEach((r) => {
+    if (!r.autoJoin) return;
+    const have = r.memberEmails || [];
+    const missing = emails.filter((e) => !have.includes(e));
+    if (missing.length) { r.memberEmails = [...have, ...missing]; changed = true; }
+  });
+  if (changed) saveChatRooms(rooms);
+}
+function getChatRoomsForCurrentUser() {
+  const user = getCurrentUser();
+  if (!user) return [];
+  const me = user.email.toLowerCase();
+  return getChatRooms().filter((r) => (r.memberEmails || []).includes(me));
+}
+function updateChatRoom(id, fn) {
+  saveChatRooms(getChatRooms().map((r) => (r.id === id ? fn(r) : r)));
+}
+function renameChatRoom(id, newName) {
+  const user = getCurrentUser();
+  const who = user ? user.name : 'Someone';
+  updateChatRoom(id, (r) => ({
+    ...r,
+    name: newName,
+    messages: [...r.messages, { system: true, text: `${who} renamed the group to \u201c${newName}\u201d` }]
+  }));
+}
+function addChatRoomMembers(id, emails) {
+  const user = getCurrentUser();
+  const who = user ? user.name : 'Someone';
+  updateChatRoom(id, (r) => {
+    const have = r.memberEmails || [];
+    const fresh = emails.map((e) => e.toLowerCase()).filter((e) => !have.includes(e));
+    if (!fresh.length) return r;
+    const names = fresh.map((e) => (getUserByEmail(e) || { name: e }).name).join(', ');
+    return {
+      ...r,
+      memberEmails: [...have, ...fresh],
+      messages: [...r.messages, { system: true, text: `${who} added ${names}` }]
+    };
+  });
+}
+function createChatGroup(name, emails) {
+  const user = getCurrentUser();
+  if (!user) return null;
+  const members = Array.from(new Set([user.email, ...emails].map((e) => e.toLowerCase())));
+  const room = {
+    id: 'grp_' + Date.now().toString(36),
+    name,
+    createdBy: user.email.toLowerCase(),
+    memberEmails: members,
+    messages: [{ system: true, text: `${user.name} created the group` }]
+  };
+  saveChatRooms([...getChatRooms(), room]);
+  return room;
+}
+
+/* "Delete conversation" works like Messenger: it clears the chat from
+   YOUR list only. Per user and thread we remember how many messages
+   were cleared; the conversation comes back (showing only newer
+   messages) if someone writes again, or via "Show deleted". */
+function getHiddenMap() {
+  return JSON.parse(localStorage.getItem(STORAGE_KEYS.chatHidden) || '{}');
+}
+function getThreadState(id) {
+  const user = getCurrentUser();
+  if (!user) return { cleared: 0, hidden: false };
+  const mine = getHiddenMap()[user.email.toLowerCase()] || {};
+  return mine[id] || { cleared: 0, hidden: false };
+}
+function setThreadState(id, patch) {
+  const user = getCurrentUser();
+  if (!user) return;
+  const key = user.email.toLowerCase();
+  const map = getHiddenMap();
+  map[key] = map[key] || {};
+  map[key][id] = { ...(map[key][id] || { cleared: 0, hidden: false }), ...patch };
+  localStorage.setItem(STORAGE_KEYS.chatHidden, JSON.stringify(map));
+}
+function restoreDeletedThreads() {
+  const user = getCurrentUser();
+  if (!user) return;
+  const key = user.email.toLowerCase();
+  const map = getHiddenMap();
+  Object.keys(map[key] || {}).forEach((id) => { map[key][id].hidden = false; });
+  localStorage.setItem(STORAGE_KEYS.chatHidden, JSON.stringify(map));
 }
 
 /* ---- Direct (1:1) messages ----
@@ -286,34 +440,6 @@ function getDirectThreadsForCurrentUser() {
     });
 }
 
-/* ---- Cross-tab live updates ----
-   The browser fires a native 'storage' event in every OTHER open tab
-   (never the tab that made the change) whenever a localStorage key is
-   written. That's exactly the signal we need for near-real-time sync
-   across tabs with no backend: a page subscribes to the storage
-   key(s) it cares about, and when that key changes elsewhere, its
-   callback re-renders from the fresh localStorage state.
-
-   Usage:  onDataChange(STORAGE_KEYS.announcements, () => renderAll());
-   Multiple keys: onDataChange([STORAGE_KEYS.chatRooms, STORAGE_KEYS.directThreads], fn);
-*/
-const dataChangeListeners = {};
-
-function onDataChange(keys, callback) {
-  (Array.isArray(keys) ? keys : [keys]).forEach((key) => {
-    if (!dataChangeListeners[key]) dataChangeListeners[key] = [];
-    dataChangeListeners[key].push(callback);
-  });
-}
-
-window.addEventListener('storage', (e) => {
-  // e.key is null when the whole storage area is cleared (e.g. via
-  // localStorage.clear()) rather than a single key changing.
-  if (!e.key) return;
-  const callbacks = dataChangeListeners[e.key];
-  if (callbacks) callbacks.forEach((cb) => cb(e));
-});
-
 /* ---- Helpers ---- */
 function fmtDate(iso) {
   if (!iso) return '';
@@ -328,15 +454,9 @@ function personInitials(name) {
   return name.split(' ').map((w) => w[0]).join('').slice(0, 2).toUpperCase();
 }
 
-/* Redirect helper for pages that require login. Also keeps this tab
-   in sync if the session ends in another tab (e.g. the user logs out
-   from their phone/another window) by watching the currentUser key. */
+/* Redirect helper for pages that require login */
 function requireAuth() {
   if (!getCurrentUser()) {
     window.location.href = 'login-choice.html';
-    return;
   }
-  onDataChange(STORAGE_KEYS.currentUser, (e) => {
-    if (!e.newValue) window.location.href = 'login-choice.html';
-  });
 }
