@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Create account - MSIES Connect</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -51,11 +51,15 @@
       return;
     }
     const role = document.querySelector('input[name="role"]:checked').value;
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('email').value;
+    const name = document.getElementById('name').value.trim().replace(/\s+/g, ' ');
+    const email = document.getElementById('email').value.trim();
     const section = document.getElementById('section').value.trim();
 
     const users = getUsers();
+    if (users.some(u => u.email.toLowerCase() === email.toLowerCase())) {
+      alert('An account with this email already exists. Please log in instead.');
+      return;
+    }
     users.push({ name, email, password, role, section: section || undefined });
     saveUsers(users);
 
