@@ -1,30 +1,10 @@
-/* ============================================================
-   navbar.js - reusable top navigation bar component.
-   Injected into #navbar-placeholder on every page.
-   Usage: renderNavbar('feed' | 'calendar' | 'chat' | 'profile' | 'home')
-   Also wires the "search people" bar shown to logged-in users,
-   which links out to view-profile.html for whoever they pick.
-   ============================================================ */
+
 
 const NAV_ROLE_LABELS = { admin: 'Admin', teacher: 'Teacher', parent: 'Parent', student: 'Student' };
-
-// Only attach the cross-tab watcher once per page load, even though
-// renderNavbar() itself is called multiple times (e.g. after a
-// profile save) — otherwise each call would stack another listener.
-let navbarAuthWatcherAttached = false;
 
 function renderNavbar(active) {
   const placeholder = document.getElementById('navbar-placeholder');
   if (!placeholder) return;
-
-  if (!navbarAuthWatcherAttached) {
-    navbarAuthWatcherAttached = true;
-    // If someone logs in or out in another tab, this tab's nav
-    // (links, search bar) should reflect that without a manual
-    // refresh — e.g. the homepage should flip from "Log in /
-    // Register" to the full nav once logged in elsewhere.
-    onDataChange(STORAGE_KEYS.currentUser, () => renderNavbar(active));
-  }
 
   const user = getCurrentUser();
 
@@ -109,6 +89,10 @@ function wireNavSearch() {
     if (e.key === 'Escape') {
       results.classList.remove('open');
       input.blur();
+    }
+    if (e.key === 'Enter') {
+      const first = results.querySelector('.nav-search-item');
+      if (first) window.location.href = first.getAttribute('href');
     }
   });
 }
