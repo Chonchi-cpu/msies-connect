@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Parent &amp; student login - MSIES Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="navbar-placeholder"></div>
+
+<main class="container">
+  <a href="index.html" class="back-link">&larr; Back</a>
+  <div class="auth-box">
+    <div class="auth-icon-wrap"><img class="logo-badge lg" src="images/logos/school-seal.png" alt="MSIES Connect"></div>
+    <h2 style="text-align:center">Parent &amp; student login</h2>
+    <p class="muted" style="text-align:center">See announcements, events, and messages</p>
+
+    <form id="parent-login-form">
+      <p>
+        Email or username:<br>
+        <input type="text" id="email" placeholder="juan.delacruz@email.com" required>
+      </p>
+      <p>
+        Password:<br>
+        <input type="password" id="password" placeholder="Enter your password" required>
+      </p>
+      <button type="submit" class="btn">Log in</button>
+    </form>
+
+    <p>
+      <a href="reset-password.html">Forgot password?</a>
+      &middot; <a href="register.html">Create an account</a>
+    </p>
+    <p><small>Try: maria.reyes@email.com / parent123 (Parent) or juan.reyes@email.com / student123 (Student)</small></p>
+  </div>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/components/navbar.js"></script>
+<script>
+  renderNavbar('home');
+
+  document.getElementById('parent-login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const password = document.getElementById('password').value;
+    const found = getUsers().find(u => (u.email.toLowerCase() === email || (!email.includes('@') && u.email.toLowerCase().split('@')[0] === email)) && u.password === password);
+    if (!found) {
+      alert('Invalid email or password. (See the demo account below the form.)');
+      return;
+    }
+    if (found.role !== 'parent' && found.role !== 'student') {
+      alert('This login is for parents and students only.');
+      return;
+    }
+    const blocked = getLoginBlockMessage(found.email);
+    if (blocked) {
+      alert(blocked);
+      return;
+    }
+    setCurrentUser(found);
+    window.location.href = 'feed.html';
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Accounts - MSIES Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="navbar-placeholder"></div>
+<div id="modal-root"></div>
+
+<main class="container">
+  <h2>Super Admin dashboard</h2>
+  <div class="dash-tabs" id="dash-tabs"></div>
+  <div class="page-header-row">
+    <h3>Accounts</h3>
+    <button type="button" class="btn" onclick="openAddAccount()">+ Add account</button>
+  </div>
+  <p class="muted">Add and manage teacher (admin) accounts. For parent and student accounts you can apply a temporary restriction, suspend or disable the account, or remove it.</p>
+
+  <div class="filters" id="filters"></div>
+  <p><input type="text" id="account-search" placeholder="Search by name or email..." oninput="renderAccounts()"></p>
+
+  <div id="account-list"></div>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/components/navbar.js"></script>
+<script src="js/components/modal.js"></script>
+<script src="js/components/dashTabs.js"></script>
+<script src="js/pages/accounts.js"></script>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Super Admin dashboard - MSIES Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="navbar-placeholder"></div>
+<div id="modal-root"></div>
+
+<main class="container">
+  <h2>Super Admin dashboard</h2>
+  <div class="dash-tabs" id="dash-tabs"></div>
+
+  <div class="dash-stats" id="dash-stats"></div>
+
+  <!-- Manage posts -->
+  <section id="section-posts">
+    <div class="page-header-row">
+      <h3>Manage posts</h3>
+      <button type="button" class="btn" onclick="dashOpenNewPost()">+ New post</button>
+    </div>
+    <div class="filters" id="dash-filters"></div>
+    <p><input type="text" id="dash-post-search" placeholder="Search posts by title..." oninput="dashRenderPosts()"></p>
+    <div id="dash-post-list"></div>
+
+    <p class="muted" style="margin-top:20px;">Comments reported by users or flagged by the spam or abuse filter are reviewed on the <a href="reports.html">Reports &amp; requests</a> page.</p>
+  </section>
+
+  <!-- Manage calendar -->
+  <section id="section-calendar" hidden>
+    <h3>Manage calendar</h3>
+    <div class="calendar-header">
+      <div class="calendar-title-group">
+        <button type="button" class="calendar-nav-btn" onclick="dashPrevMonth()" aria-label="Previous month">&larr;</button>
+        <strong id="dash-cal-title"></strong>
+        <button type="button" class="calendar-nav-btn" onclick="dashNextMonth()" aria-label="Next month">&rarr;</button>
+      </div>
+      <button type="button" class="btn btn-small" onclick="dashOpenEventForm(null, {})">+ Add event</button>
+    </div>
+    <div class="calendar-legend">
+      <span class="legend-item"><span class="legend-dot dot-events"></span>Events</span>
+      <span class="legend-item"><span class="legend-dot dot-holidays"></span>Holidays</span>
+      <span class="legend-item"><span class="legend-dot dot-reminders"></span>Reminders</span>
+      <span class="legend-item"><span class="legend-dot dot-other"></span>Other</span>
+    </div>
+    <p class="muted">Click any day to add, edit or delete its events.</p>
+    <div class="calendar-scroll">
+      <table class="calendar" id="dash-calendar-table"></table>
+    </div>
+  </section>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/components/navbar.js"></script>
+<script src="js/components/modal.js"></script>
+<script src="js/components/postForm.js"></script>
+<script src="js/components/dashTabs.js"></script>
+<script src="js/pages/dashboard.js"></script>
+</body>
+</html>
