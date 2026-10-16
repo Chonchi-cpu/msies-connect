@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Create account - MSIES Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="navbar-placeholder"></div>
+
+<main class="container">
+  <div class="auth-box" id="register-box">
+    <div class="auth-icon-wrap"><img class="logo-badge lg" src="images/logos/school-seal.png" alt="MSIES Connect"></div>
+    <h2 style="text-align:center">Create your account</h2>
+    <p class="muted" style="text-align:center">Join MSIES Connect to stay updated</p>
+
+    <form id="register-form">
+      <p>
+        I am a:
+        <label><input type="radio" name="role" value="student" checked> Student</label>
+        <label><input type="radio" name="role" value="parent"> Parent</label>
+      </p>
+      <p>Full name:<br><input type="text" id="name" placeholder="Juan Dela Cruz" required></p>
+      <p>Email address:<br><input type="email" id="email" placeholder="juan.delacruz@email.com" required></p>
+      <p>Password:<br><input type="password" id="password" placeholder="Create a password" required></p>
+      <p>Confirm password:<br><input type="password" id="confirm" placeholder="Re-enter password" required></p>
+
+      <!-- Students create their account first -->
+      <fieldset class="link-box" id="student-link-box">
+        <legend>Your class</legend>
+        <p class="muted">Create your account first. Afterwards, your parent or guardian can register and link to it using your email and full name.</p>
+        <p>Your grade &amp; section:<br><input type="text" id="student-section" placeholder="e.g. Grade 3 - Mabini"></p>
+      </fieldset>
+
+      <!-- Parents link to their child's existing student account -->
+      <fieldset class="link-box" id="parent-link-box" style="display:none">
+        <legend>Link to your child's student account</legend>
+        <p class="muted">Your child must create their student account first. Enter their login email and full name exactly as they registered.</p>
+        <p>Child's email (their login):<br><input type="email" id="child-email" placeholder="maria.delacruz@email.com"></p>
+        <p>Child's full name:<br><input type="text" id="child-name" placeholder="Maria Dela Cruz"></p>
+      </fieldset>
+
+      <button type="submit" class="btn">Create account</button>
+    </form>
+
+    <p>Already have an account? <a href="login-parent.html">Log in</a></p>
+  </div>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/components/navbar.js"></script>
+<script>
+  renderNavbar('home');
+
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  /* Show the student or the parent fields for the chosen role */
+  function updateRoleFields() {
+    const isParent = document.querySelector('input[name="role"]:checked').value === 'parent';
+    document.getElementById('parent-link-box').style.display = isParent ? '' : 'none';
+    document.getElementById('student-link-box').style.display = isParent ? 'none' : '';
+    ['child-email', 'child-name'].forEach((id) => { document.getElementById(id).required = isParent; });
+    document.getElementById('student-section').required = !isParent;
+  }
+  document.querySelectorAll('input[name="role"]').forEach((r) => r.addEventListener('change', updateRoleFields));
+  updateRoleFields();
+
+  document.getElementById('register-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const password = document.getElementById('password').value;
+    const confirm = document.getElementById('confirm').value;
+    if (password !== confirm) {
+      alert('Passwords do not match.');
+      return;
+    }
+    const role = document.querySelector('input[name="role"]:checked').value;
+    const name = document.getElementById('name').value.trim().replace(/\s+/g, ' ');
+    const email = document.getElementById('email').value.trim();
+
+    const users = getUsers();
+    if (users.some((u) => u.email.toLowerCase() === email.toLowerCase())) {
+      alert('An account with this email already exists. Please log in instead.');
+      return;
+    }
+
+    let msg;
+    if (role === 'student') {
+      /* Students register on their own; a parent links to them afterwards. */
+      const section = document.getElementById('student-section').value.trim();
+      users.push({ name, email, password, role: 'student', section, linked: [] });
+      saveUsers(users);
+      msg = `Your student account is ready. Ask your parent or guardian to create their account and link to yours using your email (<strong>${esc(email)}</strong>) and your full name (<strong>${esc(name)}</strong>).`;
+    } else {
+      /* Parents link to a student account that already exists. Check
+         everything first so a failed link never leaves a half-made account. */
+      const childEmail = document.getElementById('child-email').value.trim();
+      const childName = document.getElementById('child-name').value.trim().replace(/\s+/g, ' ');
+      if (childEmail.toLowerCase() === email.toLowerCase()) {
+        alert("Your child's email must be different from your own.");
+        return;
+      }
+      const check = checkStudentLink(null, childEmail, childName);
+      if (!check.ok) {
+        alert(LINK_MESSAGES[check.reason] || 'Could not link to that student account.');
+        return;
+      }
+      users.push({ name, email, password, role: 'parent', section: check.student.section || undefined, linked: [] });
+      saveUsers(users);
+      linkAccounts(email, check.student.email);
+      msg = `Your account is now linked to ${esc(check.student.name)}'s student account.`;
+    }
+
+    document.getElementById('register-box').innerHTML = `
+      <div class="icon-circle success">&#10003;</div>
+      <h2 style="text-align:center">Account created!</h2>
+      <p class="muted" style="text-align:center">Welcome to MSIES Connect, ${esc(name)}. ${msg} You can now log in to see announcements, events, and messages from the school.</p>
+      <p style="text-align:center"><a href="login-parent.html" class="btn">Go to log in</a></p>
+    `;
+  });
+</script>
+
+</body>
+</html>

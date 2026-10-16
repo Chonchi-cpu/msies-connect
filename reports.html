@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Reports and requests - MSIES Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="navbar-placeholder"></div>
+<div id="modal-root"></div>
+
+<main class="container">
+  <h2>Super Admin dashboard</h2>
+  <div class="dash-tabs" id="dash-tabs"></div>
+  <div class="dash-stats" id="rep-stats"></div>
+
+  <section id="section-reports">
+    <div class="page-header-row">
+      <h3>Comment moderation</h3>
+      <div class="filters" id="report-filters"></div>
+    </div>
+    <p class="muted" id="report-intro"></p>
+    <div class="filters mod-sort" id="report-sort"></div>
+    <div id="report-list"></div>
+  </section>
+
+  <section id="section-requests" class="rep-section">
+    <div class="page-header-row">
+      <h3>Contact info requests</h3>
+    </div>
+    <p class="muted">Parents and students can't edit their email or phone number themselves. Approve to apply the change to their account, or decline.</p>
+    <div class="filters" id="req-filters"></div>
+    <div id="req-list"></div>
+  </section>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/components/navbar.js"></script>
+<script src="js/components/modal.js"></script>
+<script src="js/components/dashTabs.js"></script>
+<script src="js/pages/reports.js"></script>
+<script src="js/pages/requests.js"></script>
+</body>
+</html>
