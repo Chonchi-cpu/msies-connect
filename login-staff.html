@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Staff login - MSIES Connect</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="navbar-placeholder"></div>
+
+<main class="container">
+  <a href="index.html" class="back-link">&larr; Back</a>
+  <div class="auth-box">
+    <div class="auth-icon-wrap"><img class="logo-badge lg" src="images/logos/school-seal.png" alt="MSIES Connect"></div>
+    <h2 style="text-align:center">Staff login</h2>
+    <p class="muted" style="text-align:center">For teachers and the Super Admin</p>
+
+    <form id="staff-login-form">
+      <p>
+        School email:<br>
+        <input type="email" id="email" placeholder="name@msies.edu.ph" required>
+      </p>
+      <p>
+        Password:<br>
+        <input type="password" id="password" placeholder="Enter your password" required>
+      </p>
+      <button type="submit" class="btn">Log in</button>
+    </form>
+
+    <p class="muted"><small>Forgot your password? Ask the Super Admin to reset it from the Accounts page.</small></p>
+  </div>
+</main>
+
+<script src="js/data.js"></script>
+<script src="js/components/navbar.js"></script>
+<script>
+  renderNavbar('home');
+
+  document.getElementById('staff-login-form').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim().toLowerCase();
+    const password = document.getElementById('password').value;
+    const found = getUsers().find(u => u.email.toLowerCase() === email && u.password === password);
+    if (!found) {
+      alert('Invalid email or password.');
+      return;
+    }
+    if (found.role !== 'superadmin' && found.role !== 'teacher') {
+      alert('This login is for school staff only. Parent and student accounts cannot log in here.');
+      return;
+    }
+    const blocked = getLoginBlockMessage(found.email);
+    if (blocked) {
+      alert(blocked);
+      return;
+    }
+    setCurrentUser(found);
+    window.location.href = found.role === 'superadmin' ? 'dashboard.html' : 'feed.html';
+  });
+</script>
+
+</body>
+</html>
